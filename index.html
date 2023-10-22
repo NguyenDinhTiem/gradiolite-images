@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto&display=swap" >
+      <style>
+          body {
+              font-family: 'Roboto', sans-serif;
+              font-size: 16px; 
+          }
+        .logo {
+            height: 1em;
+            vertical-align: middle;
+            margin-bottom: 0.1em; 
+          }
+      </style>
+      
+		<script type="module" crossorigin src="https://cdn.jsdelivr.net/npm/@gradio/lite@0.4.1/dist/lite.js"></script>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@gradio/lite@0.4.1/dist/lite.css" />
+	</head>
+	<body>
+      <h2>
+        <img src="lite-logo.png" alt="logo" class="logo">
+        Gradio-lite (Gradio running entirely in your browser!)
+      </h2>
+      <p>Try it out! Once the Gradio app loads (can take 10-15 seconds), disconnect your Wifi and the machine learning model will still work!</p>
+<gradio-lite>
+
+<gradio-requirements>
+transformers_js_py
+</gradio-requirements>
+
+<gradio-file name="app.py" entrypoint>
+from transformers_js import import_transformers_js, as_url
+import gradio as gr
+
+transformers = await import_transformers_js()
+pipeline = transformers.pipeline
+pipe = await pipeline('zero-shot-image-classification')
+
+async def classify(image, classes):
+	data = await pipe(as_url(image), classes.split(","))
+	result = {item['label']: round(item['score'], 2) for item in data}
+	return result
+
+demo = gr.Interface(classify, [gr.Image(label="Input image", type="filepath"), gr.Textbox(label="Classes separated by commas")], gr.Label())
+demo.launch()
+</gradio-file>
+
+</gradio-lite>		
+    </body>
+</html>
